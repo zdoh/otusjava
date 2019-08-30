@@ -107,10 +107,12 @@ public class DIYarrayList<T> implements List<T> {
             this.cursor = index;
         }
 
+        @Override
         public int nextIndex() {
             return this.cursor;
         }
 
+        @Override
         public void set(T t) {
             if(cursor < 0) {
                 throw new IllegalStateException();
@@ -119,10 +121,19 @@ public class DIYarrayList<T> implements List<T> {
             }
         }
 
+        // dont implement
+
+        @Override
         public boolean hasPrevious() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
+        public T previous() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public int previousIndex() {
             throw new UnsupportedOperationException();
         }
@@ -132,10 +143,7 @@ public class DIYarrayList<T> implements List<T> {
             throw new UnsupportedOperationException();
         }
 
-        public T previous() {
-            throw new UnsupportedOperationException();
-        }
-
+        @Override
         public void add(T t) {
             throw new UnsupportedOperationException();
         }
@@ -143,10 +151,12 @@ public class DIYarrayList<T> implements List<T> {
 
     private class Itr implements Iterator<T> {
         int cursor;
+
         @Override
         public boolean hasNext() {
             return this.cursor != DIYarrayList.this.size;
         }
+
         @Override
         public T next() {
             if(cursor >= size) {
@@ -157,6 +167,9 @@ public class DIYarrayList<T> implements List<T> {
             }
         }
     }
+
+    /// dont implement
+
 
     @Override
     public boolean isEmpty() {
