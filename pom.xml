@@ -12,7 +12,7 @@
     <modules>
         <module>hw01-maven</module>
         <module>hw03-generics-collections</module>
-        <module>HW06-annotations</module>
+        <module>hw06-annotations</module>
     </modules>
 
     <properties>
