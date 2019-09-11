@@ -1,11 +1,14 @@
 package ru.zdoher.hw06;
 
 import ru.zdoher.hw06.annotation.*;
+import ru.zdoher.hw06.exception.NotStaticMethodException;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class TestLuncher {
@@ -19,7 +22,7 @@ public class TestLuncher {
     private int badTest;
 
 
-    public TestLuncher(Class<? extends ClassWithTest> classWithTest) {
+    public TestLuncher(Class<? extends ClassWithTest> classWithTest) throws NotStaticMethodException {
         this.classWithTestClass = classWithTest;
 
         beforeAllList = new ArrayList<>();
@@ -28,78 +31,98 @@ public class TestLuncher {
         afterList = new ArrayList<>();
         testList = new ArrayList<>();
 
+        parseTestClass();
+    }
+
+    private void parseTestClass() throws NotStaticMethodException {
         for (Method declaredMethod : classWithTestClass.getDeclaredMethods()) {
             for (Annotation declaredAnnotation : declaredMethod.getDeclaredAnnotations()) {
                 if (declaredAnnotation.annotationType().equals(Test.class)) testList.add(declaredMethod);
                 if (declaredAnnotation.annotationType().equals(Before.class)) beforeList.add(declaredMethod);
                 if (declaredAnnotation.annotationType().equals(After.class)) afterList.add(declaredMethod);
-                if (declaredAnnotation.annotationType().equals(BeforeAll.class)) beforeAllList.add(declaredMethod);
-                if (declaredAnnotation.annotationType().equals(AfterAll.class)) afterAllList.add(declaredMethod);
+                if (declaredAnnotation.annotationType().equals(BeforeAll.class)) {
+                    if (!Modifier.isStatic(declaredMethod.getModifiers()))
+                        throw new NotStaticMethodException(declaredMethod.toString() + " is not static");
+                    beforeAllList.add(declaredMethod);
+                }
+                if (declaredAnnotation.annotationType().equals(AfterAll.class)) {
+                    if (!Modifier.isStatic(declaredMethod.getModifiers()))
+                        throw new NotStaticMethodException(declaredMethod.toString() + " is not static");
+                    afterAllList.add(declaredMethod);
+                }
             }
         }
 
-
     }
 
-    public void print() {
+
+    public void print() throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        runTests();
+        testStatistic();
+    }
+
+
+    private void runTests() throws IllegalAccessException, InvocationTargetException, InstantiationException {
         for (Method method : beforeAllList) {
             doBeforeAfterAll(method);
         }
 
         for (Method method : testList) {
-            for (Method beforeMethod : beforeList) { doBeforeAfter(beforeMethod); }
-            doMethod(method);
-            for (Method afterMethod : afterList) { doBeforeAfter(afterMethod); }
+            Object newInstance = classWithTestClass.getConstructors()[0].newInstance();
+            for (Method beforeMethod : beforeList) {
+                doBeforeAfter(beforeMethod, newInstance);
+            }
+            doMethod(method, newInstance);
+            for (Method afterMethod : afterList) {
+                doBeforeAfter(afterMethod, newInstance);
+            }
         }
 
         for (Method method : afterAllList) {
             doBeforeAfterAll(method);
         }
 
-        testStatistic();
     }
 
     private void doBeforeAfterAll(Method method) {
         try {
             if (Modifier.isPrivate(method.getModifiers())) {
                 method.setAccessible(true);
-                System.out.println(method.invoke(null));
+                method.invoke(null);
                 method.setAccessible(false);
             } else {
-                System.out.println(method.invoke(null));
+                method.invoke(null);
             }
         } catch (Exception e) {
-            System.out.println("got some exception");
+            System.out.println(method.toString() + " threw Exception: " + e.getCause() + " " + Arrays.toString(e.getStackTrace()));
         }
     }
 
-    private void doBeforeAfter(Method method) {
+    private void doBeforeAfter(Method method, Object newInstance) {
         try {
-            doInvoke(method);
+            doInvoke(method, newInstance);
         } catch (Exception e) {
-            System.out.println("got some exception");
+            System.out.println(method.toString() + " threw Exception: " + e.getCause() + " " + Arrays.toString(e.getStackTrace()));
         }
     }
 
-    private void doMethod(Method method) {
+    private void doMethod(Method method, Object newInstance) {
         try {
-            doInvoke(method);
+            doInvoke(method, newInstance);
             goodTest++;
         } catch (Exception e) {
             badTest++;
-            System.out.println("got some exception");
+            System.out.println(method.toString() + " threw Exception: " + e.getCause() + " " + Arrays.toString(e.getStackTrace()));
         }
     }
 
-    private void doInvoke(Method method) throws Exception {
+    private void doInvoke(Method method, Object newInstance) throws Exception {
         if (Modifier.isPrivate(method.getModifiers())) {
-            Object newInstance = classWithTestClass.getConstructors()[0].newInstance();
             method.setAccessible(true);
-            System.out.println(method.invoke(newInstance));
+            method.invoke(newInstance);
             method.setAccessible(false);
         } else {
-            Object newInstance = classWithTestClass.getConstructors()[0].newInstance();
-            System.out.println(method.invoke(newInstance));
+            method.invoke(newInstance);
         }
     }
 

@@ -6,43 +6,48 @@ import ru.zdoher.hw06.exception.ExceptionForTest;
 public class ClassWithTest {
 
     @BeforeAll
-    public static String beforeAllTest() {
-        return "!!! beforeAllTest";
+    public static void beforeAllTest() {
+        System.out.println("!!! beforeAllTest");
     }
 
     @AfterAll
-    public static String afterAllTest() {
-        return "!!! afterAllTest";
+    public static void afterAllTest() {
+        System.out.println("!!! afterAllTest");
     }
 
     @Before
-    public String beforeTest() {
-        return "--- beforeTest";
+    public void beforeTest() {
+        System.out.println("--- beforeTest");
     }
 
     @After
-    public String afterTest() {
-        return "--- afterTest";
+    public void afterTest() {
+        System.out.println("--- afterTest");
+    }
+
+    @After
+    public void afterTestWithException() {
+        System.out.println(3/0);
     }
 
     @Test
-    public String firstTest() {
-        return "firstTest";
+    public void firstTest() {
+        System.out.println("firstTest");
     }
 
     @Test
-    public String testWithException() throws ExceptionForTest {
+    public void testWithException() throws ExceptionForTest {
         throw new ExceptionForTest();
     }
 
     @Test
-    private String secondTest() {
-        return "secondTest";
+    private void secondTest() {
+        System.out.println("secondTest");
     }
 
     @Test
-    public String thirdTest() {
-        return "thirdTest";
+    public void thirdTest() {
+        System.out.println("thirdTest");
     }
 
 
