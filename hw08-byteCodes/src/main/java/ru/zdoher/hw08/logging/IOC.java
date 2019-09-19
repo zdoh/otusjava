@@ -21,20 +21,20 @@ public class IOC {
 
     static class MyTestLoggingImpl implements InvocationHandler {
         private final TestLogging testLogging;
-        private Map<Method, Boolean> logAnnotationCache;
+        private Map<Method, Boolean> cacheLogAnnotation;
 
         MyTestLoggingImpl(TestLogging testLogging) {
             this.testLogging = testLogging;
-            logAnnotationCache = new HashMap<>();
+            cacheLogAnnotation = new HashMap<>();
         }
 
         @Override
         public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
             Method tempMethod = testLogging.getClass().getMethod(method.getName(), method.getParameterTypes());
 
-            if (!logAnnotationCache.containsKey(method)) addToAnnotationCache(tempMethod);
+            if (!cacheLogAnnotation.containsKey(method)) addToAnnotationCache(tempMethod);
 
-            if (logAnnotationCache.get(tempMethod)) {
+            if (cacheLogAnnotation.get(tempMethod)) {
                 System.out.println("executed method: " + method.getName() +
                         ", param: " + Arrays.deepToString(objects));
             }
@@ -48,10 +48,11 @@ public class IOC {
             for (Annotation declaredAnnotation : method.getDeclaredAnnotations()) {
                 if (declaredAnnotation.annotationType().equals(Log.class)) {
                     annotationLogExist = true;
+                    break;
                 }
             }
 
-            logAnnotationCache.put(method, annotationLogExist);
+            cacheLogAnnotation.put(method, annotationLogExist);
         }
     }
 }
