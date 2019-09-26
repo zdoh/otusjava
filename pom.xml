@@ -13,6 +13,7 @@
         <module>hw01-maven</module>
         <module>hw03-generics-collections</module>
         <module>hw06-annotations</module>
+        <module>hw08-byteCodes</module>
     </modules>
 
     <properties>
